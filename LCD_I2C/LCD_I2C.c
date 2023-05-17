@@ -78,4 +78,13 @@ void lcd_set_cursor(uint8_t row, uint8_t column) {
     lcd_send_command(LCD_SET_DD_RAM_ADDRESS | address);
     
 }
+// Funciones de desplazamiento
+
+void lcd_scroll_right() {
+    lcd_send_command(0x1C);  // Comando de desplazamiento hacia la derecha
+}
+
+void lcd_scroll_left() {
+    lcd_send_command(0x18);  // Comando de desplazamiento hacia la izquierda
+}
 

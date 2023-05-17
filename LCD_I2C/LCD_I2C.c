@@ -79,27 +79,3 @@ void lcd_set_cursor(uint8_t row, uint8_t column) {
     
 }
 
-/* PARTE PARA IMPRIMIR UNA VARIABLE */
-#include "lcd_i2c.h"
-#include <stdio.h>
-
-// Función principal
-int main() {
-    // Configurar y inicializar el LCD
-    lcd_init();
-
-    // Variable entera para imprimir en el LCD
-    int myVariable = 42;
-
-    // Convertir la variable entera en una cadena de caracteres (sprintf)
-    char buffer[16];  // Tamaño suficiente para almacenar la cadena
-    sprintf(buffer, "%d", myVariable);
-
-    // Mostrar la variable en el LCD
-    lcd_set_cursor(0, 0);
-    lcd_print(buffer);
-
-    while (1) {
-        // Bucle infinito
-    }
-}

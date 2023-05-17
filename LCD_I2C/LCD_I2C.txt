@@ -1,0 +1,22 @@
+REFERENCIAS DE FUNCIONES
+
+// Función para enviar un comando al LCD
+void lcd_send_command(uint8_t command);
+
+// Función para enviar un carácter al LCD
+void lcd_send_character(uint8_t character);
+
+// Función para inicializar el LCD
+void lcd_init();
+
+// Función para imprimir una cadena de texto en el LCD
+void lcd_print(const char* text);
+
+// Función para borrar el LCD
+void lcd_clear();
+
+// Función para crear caracter
+void create_char(uint8_t index, const uint8_t* data);
+
+// Función para establecer la posición del cursor en el LCD
+void lcd_set_cursor(uint8_t row, uint8_t column);

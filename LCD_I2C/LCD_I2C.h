@@ -45,4 +45,11 @@ void create_char(uint8_t index, const uint8_t* data);
 // Función para establecer la posición del cursor en el LCD
 void lcd_set_cursor(uint8_t row, uint8_t column);
 
+// Función para desplazar todo el texto hacia la derecha en el LCD
+void lcd_scroll_right();
+
+// Función para desplazar todo el texto hacia la izquierda en el LCD
+void lcd_scroll_left();
+
+
 #endif  // LCD_I2C_H

@@ -4,48 +4,103 @@
 const uint8_t LCD_LINE_ADDRESS[LCD_NUM_ROWS] = {0x00, 0x40};
 #define LCD_SET_DD_RAM_ADDRESS 0x80
 
-// ...
-// Función para enviar un byte a través de I2C
-void i2c_send_byte(uint8_t data) {
-    I2C0->D = data;
-    while (!(I2C0->S & I2C_S_IICIF_MASK));
-    I2C0->S |= I2C_S_IICIF_MASK;
+#define LCD_ADDR 0x27
+
+/* Función para permitir tiempos de espera necesarios en la comunicacion I2C */
+
+void i2c_delay(void) {
+    volatile int i;
+    for (i = 0; i < 50; i++) {
+        __asm("nop");
+    }
 }
 
-// Función para enviar un comando al LCD
-void lcd_send_command(uint8_t command) {
-    i2c_send_byte(0x00);  // Modo comando
-    i2c_send_byte(command);
+/* Se encarga de iniciar la comunicación I2C */
+
+void i2c_start(void) {
+    I2C0_C1 |= I2C_C1_MST_MASK | I2C_C1_TX_MASK;
+    i2c_delay();
 }
 
-// Función para enviar un carácter al LCD
-void lcd_send_character(uint8_t character) {
-    i2c_send_byte(0x40);  // Modo datos
-    i2c_send_byte(character);
+/* Se encarga de detener la comunicación I2C */
+
+void i2c_stop(void) {
+    I2C0_C1 &= ~(I2C_C1_MST_MASK | I2C_C1_TX_MASK);
+    i2c_delay();
 }
 
+/* Se utiliza para enviar un byte a traves del bus I2C */
 
-// Función para inicializar el LCD
-void lcd_init() {
-    // Inicializar I2C
-    SIM->SCGC4 |= SIM_SCGC4_I2C0_MASK;
-    SIM->SCGC5 |= SIM_SCGC5_PORTB_MASK;
-    PORTB->PCR[0] = PORT_PCR_MUX(2) | PORT_PCR_ODE_MASK;
-    PORTB->PCR[1] = PORT_PCR_MUX(2) | PORT_PCR_ODE_MASK;
-    I2C0->F = 0x14;  // Configurar velocidad de 100kHz
-    I2C0->C1 |= I2C_C1_IICEN_MASK;
-
-    // Inicializar LCD
-    lcd_send_command(0x33);
-    lcd_send_command(0x32);
-    lcd_send_command(0x28);
-    lcd_send_command(LCD_COMMAND_DISPLAY_OFF);
-    lcd_send_command(LCD_COMMAND_CLEAR_DISPLAY);
-    lcd_send_command(LCD_COMMAND_CURSOR_OFF);
-    lcd_send_command(LCD_COMMAND_BLINK_OFF);
-    lcd_send_command(LCD_COMMAND_RETURN_HOME);
-    lcd_send_command(LCD_COMMAND_DISPLAY_ON);
+void i2c_write_byte(unsigned char byte) {
+// Se carga el byte en el registro de datos I2C0_D
+    I2C0_D = byte;
+// Se espera a que se complete la transferencia
+    while (!(I2C0_S & I2C_S_IICIF_MASK));
+    i2c_delay();
+// Se borra la transferencia
+    I2C0_S |= I2C_S_IICIF_MASK;
 }
+
+/* Se envia un nibble */
+
+void lcd_send_nibble(unsigned char nibble) {
+    i2c_write_byte((nibble & 0xF0) | (1 << 3) | (1 << 2));
+    i2c_write_byte((nibble & 0xF0) | (1 << 3));
+    i2c_write_byte((nibble & 0xF0) | (1 << 2));
+}
+
+/* Se envia un byte */
+
+void lcd_send_byte(unsigned char address, unsigned char byte) {
+    lcd_send_nibble(address);
+    lcd_send_nibble(byte);
+}
+
+/* Se envían comandos */
+
+void lcd_command(unsigned char command) {
+    lcd_send_byte(0x00, command);
+}
+
+/* Se envían datos */
+
+void lcd_data(unsigned char data) {
+    lcd_send_byte(0x40, data);
+}
+
+/* Se inicializa la comunicación I2C */
+
+void lcd_init(void) {
+// Se activa el reloj I2C y se configuran los pines para el bus I2C
+    SIM_SCGC4 |= SIM_SCGC4_I2C0_MASK;
+    SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
+    PORTB_PCR0 = PORT_PCR_MUX(2) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
+    PORTB_PCR1 = PORT_PCR_MUX(2) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
+    I2C0_C1 = 0;
+    I2C0_C2 = 0;
+// Frecuencia de 100 kHz para el bus I2C
+    I2C0_F = 0x14;
+    I2C0_C1 |= I2C_C1_IICEN_MASK;
+    lcd_command(0x33);
+    lcd_command(0x32);
+    lcd_command(0x28);
+    lcd_command(0x0C);
+    lcd_command(0x06);
+    lcd_command(0x01);
+}
+
+/* */
+
+void lcd_send_command(unsigned char command) {
+    lcd_command(command);
+}
+
+/* */
+
+void lcd_send_data(unsigned char data) {
+    lcd_data(data);
+}
+
 
 // Función para imprimir una cadena de texto en el LCD
 void lcd_print(const char* text) {
@@ -87,4 +142,3 @@ void lcd_scroll_right() {
 void lcd_scroll_left() {
     lcd_send_command(0x18);  // Comando de desplazamiento hacia la izquierda
 }
-

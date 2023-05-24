@@ -24,14 +24,13 @@
 extern const uint8_t LCD_LINE_ADDRESS[LCD_NUM_ROWS];
 #define LCD_SET_DD_RAM_ADDRESS 0x80
 
-// Función para enviar un comando al LCD
-void lcd_send_command(uint8_t command);
+void lcd_init(void);
+void lcd_send_command(unsigned char command);
+void lcd_send_data(unsigned char data);
 
 // Función para enviar un carácter al LCD
 void lcd_send_character(uint8_t character);
 
-// Función para inicializar el LCD
-void lcd_init();
 
 // Función para imprimir una cadena de texto en el LCD
 void lcd_print(const char* text);
